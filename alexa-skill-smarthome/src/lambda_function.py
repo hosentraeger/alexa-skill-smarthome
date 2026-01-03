@@ -37,62 +37,27 @@ iot_client = boto3.client("iot-data")
 def handle_discovery(devices_records):
     """
     Erstellt die Antwort auf den Alexa.Discovery / Discover Request.
-    devices_records: Eine Liste von Dictionarys (Items) aus der DynamoDB.
+    Nutzt die Logik der AlexaDevice-Klasse.
     """
-    # Wir nutzen AlexaResponse, aber ohne endpoint_id im Header
+    # Initialisiere die Antwort-Struktur
     adr = AlexaResponse(name="Discover.Response", namespace="Alexa.Discovery")
     
     endpoints = []
     for record in devices_records:
-
-        # ABFRAGE AUF ENABLED
-        # Wenn das Feld 'enabled' nicht existiert, gehen wir standardmäßig von 'True' aus,
-        # damit alte Geräte nicht plötzlich verschwinden.
-        if not record.get('enabled', False):
-            print(f"Discovery: Überspringe deaktiviertes Gerät: {record.get('friendly_name', 'Unbekannt')}")
+        # 1. Filter: Nur enabled Geräte
+        # Hier nutzen wir den record direkt, um gar nicht erst das Objekt zu bauen
+        if not record.get('enabled', True):
             continue
 
-        # 1. AlexaDevice Objekt erstellen (lädt automatisch die Controller)
+        # 2. AlexaDevice Objekt erstellen
+        # Das Objekt weiß selbst, wie es seine Capabilities und Payloads baut
         device = AlexaDevice(record)
         
-        # 2. Die Fähigkeiten (Capabilities) von allen Controllern sammeln
-        # Wir fügen standardmäßig AlexaInterface (V3) und EndpointHealth hinzu
-        capabilities = [
-            {
-                "type": "AlexaInterface",
-                "interface": "Alexa",
-                "version": "3"
-            }
-        ]
-        
-        # Jede Controller-Klasse steuert ihre eigene Capability-Beschreibung bei
-        for controller in device.controllers:
-            capabilities.append(controller.get_capability())
-            
-        # EndpointHealth (Connectivity) gehört zu jedem Gerät
-        capabilities.append({
-            "type": "AlexaInterface",
-            "interface": "Alexa.EndpointHealth",
-            "version": "3",
-            "properties": {
-                "supported": [{"name": "connectivity"}],
-                "retrievable": True,
-                "proactivelyReported": True
-            }
-        })
+        # 3. Das fertige Endpunkt-Dict von der Klasse abholen
+        # get_discovery_payload() liefert genau das Format, das Alexa erwartet
+        endpoints.append(device.get_discovery_payload())
 
-        # 3. Den Endpunkt für die Discovery-Payload bauen
-        endpoint = adr.create_payload_endpoint(
-            endpoint_id=device.endpoint_id,
-            friendly_name=device.friendly_name,
-            description=device.description,
-            manufacturer_name=device.manufacturer_name,
-            display_categories=device.display_categories,
-            capabilities=capabilities
-        )
-        endpoints.append(endpoint)
-
-    # 4. Die Liste der Endpunkte in die Response setzen
+    # 4. Die Liste der Endpunkte in die Response setzen und das finale JSON liefern
     adr.set_payload_endpoints(endpoints)
     return adr.get()
 
