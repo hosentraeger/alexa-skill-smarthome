@@ -3,12 +3,14 @@
 # Konfiguration
 SKILL_DIR="alexa-skill-smarthome/src"
 MQTT_DIR="alexa-device-update-state-mqtt/src"
+DEVICES_DIR="alexa-devices/src"
 COMMON_FILES=("alexa_device.py" "alexa_utils.py" "alexa_auth.py" "alexa_response.py" "alexa_discovery.py")
 CONTROLLERS_DIR="controllers"
 
 # AWS Lambda Funktionsnamen
 SKILL_LAMBDA_NAME="alexa-skill-smarthome"
 MQTT_LAMBDA_NAME="alexa-device-update-state-mqtt"
+DEVICES_LAMBDA_NAME="alexa-devices"
 
 # 1. Gemeinsame Dateien kopieren
 echo "--- Synchronisiere gemeinsame Dateien ---"
@@ -46,12 +48,9 @@ deploy_lambda() {
 case "$1" in
     skill) deploy_lambda "$SKILL_DIR" "$SKILL_LAMBDA_NAME" ;;
     mqtt)  deploy_lambda "$MQTT_DIR" "$MQTT_LAMBDA_NAME" ;;
-    all)   
-        deploy_lambda "$SKILL_DIR" "$SKILL_LAMBDA_NAME"
-        deploy_lambda "$MQTT_DIR" "$MQTT_LAMBDA_NAME"
-        ;;
+    devices)  deploy_lambda "$DEVICES_DIR" "$DEVICES_LAMBDA_NAME" ;;
     *)
-        echo "Usage: $0 {skill|mqtt|all}"
+        echo "Usage: $0 {skill|mqtt|devices}"
         exit 1
 esac
 
