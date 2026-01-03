@@ -34,8 +34,6 @@ table = db_resource.Table(DDB_TABLE_NAME)
 # IoT Client für MQTT (außerhalb der Funktion für Re-use)
 iot_client = boto3.client("iot-data")
 
-MANUFACTURER_NAME = os.environ.get("MANUFACTURER_NAME", "A.C.M.E. Corp")
-
 def handle_discovery(devices_records):
     """
     Erstellt die Antwort auf den Alexa.Discovery / Discover Request.
@@ -46,6 +44,14 @@ def handle_discovery(devices_records):
     
     endpoints = []
     for record in devices_records:
+
+        # ABFRAGE AUF ENABLED
+        # Wenn das Feld 'enabled' nicht existiert, gehen wir standardmäßig von 'True' aus,
+        # damit alte Geräte nicht plötzlich verschwinden.
+        if not record.get('enabled', False):
+            print(f"Discovery: Überspringe deaktiviertes Gerät: {record.get('friendly_name', 'Unbekannt')}")
+            continue
+
         # 1. AlexaDevice Objekt erstellen (lädt automatisch die Controller)
         device = AlexaDevice(record)
         
@@ -71,7 +77,7 @@ def handle_discovery(devices_records):
             "properties": {
                 "supported": [{"name": "connectivity"}],
                 "retrievable": True,
-                "proactivelyReported": False
+                "proactivelyReported": True
             }
         })
 
@@ -80,7 +86,7 @@ def handle_discovery(devices_records):
             endpoint_id=device.endpoint_id,
             friendly_name=device.friendly_name,
             description=device.description,
-            manufacturer_name=MANUFACTURER_NAME,
+            manufacturer_name=device.manufacturer_name,
             display_categories=device.display_categories,
             capabilities=capabilities
         )
@@ -112,7 +118,7 @@ def handle_control(device, request):
 
     if mqtt_data:
       handle_generic = getattr(device, 'handle_generic', True) 
-      item_name = getattr(device, 'device_name', device.endpoint_id)
+      item_name = getattr(device, 'item_name', device.endpoint_id)
       alexa_message = {
             "endpointId": endpoint_id,
             "openHABItemName": item_name,

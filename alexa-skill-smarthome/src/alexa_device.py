@@ -3,6 +3,8 @@
 import boto3
 import os
 
+DEFAULT_MANUFACTURER_NAME = os.environ.get("MANUFACTURER_NAME", "A.C.M.E. Corp")
+
 from controllers import (
     PowerController, BrightnessController, SpeakerController, 
     TemperatureSensor, RollershutterController
@@ -19,10 +21,10 @@ CONTROLLER_MAPPING = {
 class AlexaDevice:
     def __init__(self, record):
         self.endpoint_id = record['device_id']
-        self.device_name = record['device_name']
-        self.friendly_name = record.get('friendly_name', 'Unbekannt')
-        self.description = record.get('description', 'Keine Beschreibung')
-        self.manufacturer_name = record.get('manufacturer_name', 'redfive')
+        self.item_name = record['item_name']
+        self.friendly_name = record.get('friendly_name', self.item_name)
+        self.description = record.get('description', self.item_name)
+        self.manufacturer_name = record.get('manufacturer_name', DEFAULT_MANUFACTURER_NAME)
 
         # Neue Attribute für additionalAttributes
         self.firmware_version = record.get('firmware_version', 'v1.0')
@@ -36,6 +38,8 @@ class AlexaDevice:
         
         self.proactive = record.get('proactivelyReported', False)
         self.retrievable = record.get('retrievable', True)
+        self.handle_generic = record.get('OpenHABHandleGeneric', True)
+        self.enabled = record.get('enabled', True)
         
         # Den State als Member speichern
         self.raw_state = record.get('state', {})
