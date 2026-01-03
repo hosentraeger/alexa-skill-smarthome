@@ -58,22 +58,22 @@ def send_change_report(device_id, namespace, name, value):
 def lambda_handler(event, context):
     try:
         # Event von der IoT Rule (Topic: alexa/+/state)
-        dev_name = event.get("device_name") 
+        item_name = event.get("item_name")
         new_state = event.get("state")
 
-        if not dev_name or new_state is None:
-            print("Fehler: device_name oder state fehlt im Event")
+        if not item_name or new_state is None:
+            print("Fehler: item_name oder state fehlt im Event")
             return
 
-        # 1. Schritt: Suche nach der UUID (device_id) via device_name
+        # 1. Schritt: Suche nach der UUID (device_id) via item_name
         response = table.query(
-            IndexName="device_name-index",
-            KeyConditionExpression=Key("device_name").eq(dev_name)
+            IndexName="item-name-index",
+            KeyConditionExpression=Key("item_name").eq(item_name)
         )
 
         items = response.get("Items", [])
         if not items:
-            print(f"Gerät '{dev_name}' nicht in Datenbank gefunden.")
+            print(f"Geräte mit item_name '{item_name}' nicht in Datenbank gefunden.")
             return
 
         real_id = items[0]["device_id"]
