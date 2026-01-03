@@ -9,55 +9,120 @@ class RollershutterController(AlexaController):
     @staticmethod
     def get_capability(proactive=False, retrievable=True):
         return {
-            "type": "AlexaInterface",
-            "interface": "Alexa.ModeController",
-            "instance": RollershutterController.instance,
-            "version": "3",
-            "properties": {
-                "supported": [{"name": "mode"}],
-                "retrievable": retrievable,
-                "proactivelyReported": proactive
-            },
-            "capabilityResources": {
-                "friendlyNames": [
+          "capabilityResources": {
+            "friendlyNames": [
+              {
+                "@type": "asset",
+                "value": {
+                  "assetId": "Alexa.Setting.Opening"
+                }
+              }
+            ]
+          },
+          "configuration": {
+            "ordered": False,
+            "supportedModes": [
+              {
+                "value": "Position.Up",
+                "modeResources": {
+                  "friendlyNames": [
                     {
-                        "@type": "asset",
-                        "value": {"assetId": "Alexa.Setting.Opening"}
+                      "@type": "asset",
+                      "value": {
+                        "assetId": "Alexa.Value.Open"
+                      }
                     }
-                ]
-            },
-            "configuration": {
-                "ordered": False,
-                "supportedModes": [
+                  ]
+                }
+              },
+              {
+                "value": "Position.Down",
+                "modeResources": {
+                  "friendlyNames": [
                     {
-                        "value": "Position.Up",
-                        "modeResources": {
-                            "friendlyNames": [
-                                {"@type": "asset", "value": {"assetId": "Alexa.Value.Open"}}
-                            ]
-                        }
-                    },
-                    {
-                        "value": "Position.Down",
-                        "modeResources": {
-                            "friendlyNames": [
-                                {"@type": "asset", "value": {"assetId": "Alexa.Value.Close"}}
-                            ]
-                        }
-                    },
-                    {
-                        "value": "Position.Stopped",
-                        "modeResources": {
-                            "friendlyNames": [
-                                {
-                                    "@type": "text", 
-                                    "value": {"locale": "de-DE", "text": "Stopp"}
-                                }
-                            ]
-                        }
+                      "@type": "asset",
+                      "value": {
+                        "assetId": "Alexa.Value.Close"
+                      }
                     }
-                ]
-            }
+                  ]
+                }
+              },
+              {
+                "value": "Position.Stopped",
+                "modeResources": {
+                  "friendlyNames": [
+                    {
+                      "@type": "text",
+                      "value": {
+                        "locale": "de-DE",
+                        "text": "Stopp"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "semantics": {
+            "actionMappings": [
+              {
+                "@type": "ActionsToDirective",
+                "actions": [
+                  "Alexa.Actions.Close",
+                  "Alexa.Actions.Lower"
+                ],
+                "directive": {
+                  "name": "SetMode",
+                  "payload": {
+                    "mode": "Position.Down"
+                  }
+                }
+              },
+              {
+                "@type": "ActionsToDirective",
+                "actions": [
+                  "Alexa.Actions.Open",
+                  "Alexa.Actions.Raise"
+                ],
+                "directive": {
+                  "name": "SetMode",
+                  "payload": {
+                    "mode": "Position.Up"
+                  }
+                }
+              }
+            ],
+            "stateMappings": [
+              {
+                "@type": "StatesToValue",
+                "states": [
+                  "Alexa.States.Closed"
+                ],
+                "value": "Position.Down"
+              },
+              {
+                "@type": "StatesToValue",
+                "states": [
+                  "Alexa.States.Open"
+                ],
+                "value": "Position.Up"
+              }
+            ]
+          },
+          "type": "AlexaInterface",
+          "interface": "Alexa.ModeController",
+          "instance": RollershutterController.instance,
+          "version": "3",
+          "properties": {
+            "proactivelyReported": proactive,
+            "retrievable": retrievable,
+            "supported": [
+              {
+                "name": "mode"
+              }
+            ]
+          }
         }
 
     @staticmethod
