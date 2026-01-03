@@ -1,8 +1,14 @@
 import boto3, json, os, uuid
+from decimal import Decimal
+
 table = boto3.resource("dynamodb").Table(os.environ["DEVICE_TABLE"])
 
 def add_device(event, context=None):
-    body = json.loads(event.get("body") or "{}")
+    try:
+        body = json.loads(event.get("body") or "{}", parse_float=Decimal)
+    except Exception as e:
+        return {"statusCode": 400, "body": json.dumps({"error": "Invalid JSON"})}
+
     new_id = str(uuid.uuid4())
     
     item = {

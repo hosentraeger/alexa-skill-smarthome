@@ -1,4 +1,5 @@
 import boto3, json, os, logging
+from decimal import Decimal
 
 # Logging konfigurieren
 logger = logging.getLogger()
@@ -15,7 +16,7 @@ def update_device(event, context=None):
     logger.info(f"Raw Body: {raw_body}")
 
     try:
-        body = json.loads(raw_body)
+        body = json.loads(raw_body, parse_float=Decimal)
     except Exception as e:
         logger.error(f"JSON Parse Error: {str(e)}")
         return {"statusCode": 400, "body": json.dumps({"error": "Invalid JSON"})}
