@@ -1,0 +1,160 @@
+{
+  "event": {
+    "header": {
+      "messageId": "23b019d1-2cad-4f63-8396-279ce63f639d",
+      "name": "Discover.Response",
+      "namespace": "Alexa.Discovery",
+      "payloadVersion": "3"
+    },
+    "payload": {
+      "endpoints": [
+        {
+          "capabilities": [
+            {
+              "interface": "Alexa",
+              "type": "AlexaInterface",
+              "version": "3"
+            },
+            {
+              "capabilityResources": {
+                "friendlyNames": [
+                  {
+                    "@type": "asset",
+                    "value": {
+                      "assetId": "Alexa.Setting.Opening"
+                    }
+                  }
+                ]
+              },
+              "configuration": {
+                "ordered": false,
+                "supportedModes": [
+                  {
+                    "modeResources": {
+                      "friendlyNames": [
+                        {
+                          "@type": "asset",
+                          "value": {
+                            "assetId": "Alexa.Value.Open"
+                          }
+                        }
+                      ]
+                    },
+                    "value": "Position.Up"
+                  },
+                  {
+                    "modeResources": {
+                      "friendlyNames": [
+                        {
+                          "@type": "asset",
+                          "value": {
+                            "assetId": "Alexa.Value.Close"
+                          }
+                        }
+                      ]
+                    },
+                    "value": "Position.Down"
+                  },
+                  {
+                    "modeResources": {
+                      "friendlyNames": [
+                        {
+                          "@type": "text",
+                          "value": {
+                            "locale": "de-DE",
+                            "text": "Stopp"
+                          }
+                        }
+                      ]
+                    },
+                    "value": "Position.Stopped"
+                  }
+                ]
+              },
+              "instance": "Blind.Position",
+              "interface": "Alexa.ModeController",
+              "properties": {
+                "proactivelyReported": false,
+                "retrievable": true,
+                "supported": [
+                  {
+                    "name": "mode"
+                  }
+                ]
+              },
+              "semantics": {
+                "actionMappings": [
+                  {
+                    "@type": "ActionsToDirective",
+                    "actions": [
+                      "Alexa.Actions.Close",
+                      "Alexa.Actions.Lower"
+                    ],
+                    "directive": {
+                      "name": "SetMode",
+                      "payload": {
+                        "mode": "Position.Down"
+                      }
+                    }
+                  },
+                  {
+                    "@type": "ActionsToDirective",
+                    "actions": [
+                      "Alexa.Actions.Open",
+                      "Alexa.Actions.Raise"
+                    ],
+                    "directive": {
+                      "name": "SetMode",
+                      "payload": {
+                        "mode": "Position.Up"
+                      }
+                    }
+                  }
+                ],
+                "stateMappings": [
+                  {
+                    "@type": "StatesToValue",
+                    "states": [
+                      "Alexa.States.Closed"
+                    ],
+                    "value": "Position.Down"
+                  },
+                  {
+                    "@type": "StatesToValue",
+                    "states": [
+                      "Alexa.States.Open"
+                    ],
+                    "value": "Position.Up"
+                  }
+                ]
+              },
+              "type": "AlexaInterface",
+              "version": "3"
+            },
+            {
+              "interface": "Alexa.EndpointHealth",
+              "properties": {
+                "proactivelyReported": true,
+                "retrievable": true,
+                "supported": [
+                  {
+                    "name": "connectivity"
+                  }
+                ]
+              },
+              "type": "AlexaInterface",
+              "version": "3"
+            }
+          ],
+          "description": "Leinwand",
+          "displayCategories": [
+            "INTERIOR_BLIND"
+          ],
+          "endpointId": "3857df88-d875-49c5-85ae-58487127cb0d",
+          "friendlyName": "Leinwand",
+          "manufacturerName": "redfive"
+        }
+      ]
+    }
+  }
+}

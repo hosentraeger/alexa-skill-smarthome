@@ -1,0 +1,153 @@
+{
+  "event": {
+    "header": {
+      "messageId": "Unique identifier, preferably a version 4 UUID",
+      "name": "Discover.Response",
+      "namespace": "Alexa.Discovery",
+      "payloadVersion": "3"
+    },
+    "payload": {
+      "endpoints": [
+        {
+          "additionalAttributes": {
+            "customIdentifier": "your custom identifier for the blinds",
+            "manufacturer": "manufacturer name",
+            "model": "sample model",
+            "serialNumber": "the serial number of the blinds"
+          },
+          "capabilities": [
+            {
+              "capabilityResources": {
+                "friendlyNames": [
+                  {
+                    "@type": "asset",
+                    "value": {
+                      "assetId": "Alexa.Setting.Opening"
+                    }
+                  }
+                ]
+              },
+              "configuration": {
+                "ordered": false,
+                "supportedModes": [
+                  {
+                    "modeResources": {
+                      "friendlyNames": [
+                        {
+                          "@type": "asset",
+                          "value": {
+                            "assetId": "Alexa.Value.Open"
+                          }
+                        }
+                      ]
+                    },
+                    "value": "Position.Up"
+                  },
+                  {
+                    "modeResources": {
+                      "friendlyNames": [
+                        {
+                          "@type": "asset",
+                          "value": {
+                            "assetId": "Alexa.Value.Close"
+                          }
+                        }
+                      ]
+                    },
+                    "value": "Position.Down"
+                  }
+                ]
+              },
+              "instance": "Blinds.Position",
+              "interface": "Alexa.ModeController",
+              "properties": {
+                "proactivelyReported": true,
+                "retrievable": true,
+                "supported": [
+                  {
+                    "name": "mode"
+                  }
+                ]
+              },
+              "semantics": {
+                "actionMappings": [
+                  {
+                    "@type": "ActionsToDirective",
+                    "actions": [
+                      "Alexa.Actions.Close",
+                      "Alexa.Actions.Lower"
+                    ],
+                    "directive": {
+                      "name": "SetMode",
+                      "payload": {
+                        "mode": "Position.Down"
+                      }
+                    }
+                  },
+                  {
+                    "@type": "ActionsToDirective",
+                    "actions": [
+                      "Alexa.Actions.Open",
+                      "Alexa.Actions.Raise"
+                    ],
+                    "directive": {
+                      "name": "SetMode",
+                      "payload": {
+                        "mode": "Position.Up"
+                      }
+                    }
+                  }
+                ],
+                "stateMappings": [
+                  {
+                    "@type": "StatesToValue",
+                    "states": [
+                      "Alexa.States.Closed"
+                    ],
+                    "value": "Position.Down"
+                  },
+                  {
+                    "@type": "StatesToValue",
+                    "states": [
+                      "Alexa.States.Open"
+                    ],
+                    "value": "Position.Up"
+                  }
+                ]
+              },
+              "type": "AlexaInterface",
+              "version": "3"
+            },
+            {
+              "interface": "Alexa.EndpointHealth",
+              "properties": {
+                "proactivelyReported": true,
+                "retrievable": true,
+                "supported": [
+                  {
+                    "name": "connectivity"
+                  }
+                ]
+              },
+              "type": "AlexaInterface",
+              "version": "3"
+            },
+            {
+              "interface": "Alexa",
+              "type": "AlexaInterface",
+              "version": "3"
+            }
+          ],
+          "cookie": {},
+          "description": "Smart Blinds by Manufacturer",
+          "displayCategories": [
+            "INTERIOR_BLIND"
+          ],
+          "endpointId": "Unique ID of the endpoint",
+          "friendlyName": "Blinds",
+          "manufacturerName": "manufacturer name"
+        }
+      ]
+    }
+  }
+}
