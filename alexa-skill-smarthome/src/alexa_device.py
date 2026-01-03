@@ -54,11 +54,7 @@ class AlexaDevice:
     def get_discovery_capabilities(self):
         """Erstellt die Liste aller Capabilities für die Discovery."""
         # Jedes Smart Home Gerät braucht das Basis-Interface
-        caps = [{
-            "type": "AlexaInterface",
-            "interface": "Alexa",
-            "version": "3"
-        }]
+        caps = []
         
         # Alle dynamischen Controller (Power, Brightness, etc.)
         for ctrl in self.controllers:
@@ -75,6 +71,14 @@ class AlexaDevice:
                 "proactivelyReported": True
             }
         })
+
+        # 3. Das Basis Alexa Interface (immer am Schluss)
+        caps.append({
+            "type": "AlexaInterface",
+            "interface": "Alexa",
+            "version": "3"
+        })
+
         return caps
 
 
@@ -82,15 +86,16 @@ class AlexaDevice:
         """Nutzt jetzt die internen Daten der Klasse."""
         all_props = []
         
-        # Normalisierung (wie zuvor besprochen)
-        if isinstance(self.raw_state, str):
+        # Normalisierung
+        if isinstance(self.raw_state, dict):
+            full_state = self.raw_state
+        else:
             full_state = {
                 "power": self.raw_state,
-                "brightness": 0,
+                "brightness": self.raw_state,
+                "temperature": self.raw_state,
                 "value": self.raw_state
             }
-        else:
-            full_state = self.raw_state
 
         for controller in self.controllers:
             # Zugriff auf die statische Methode der Controller-Klasse
