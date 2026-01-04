@@ -7,7 +7,8 @@ DEFAULT_MANUFACTURER_NAME = os.environ.get("MANUFACTURER_NAME", "A.C.M.E. Corp")
 
 from controllers import (
     PowerController, BrightnessController, SpeakerController, 
-    TemperatureSensor, RollershutterController
+    TemperatureSensor, RollershutterController, ColorController,
+    ColorTemperatureController
 )
 
 CONTROLLER_MAPPING = {
@@ -15,7 +16,9 @@ CONTROLLER_MAPPING = {
     "BrightnessController": BrightnessController,
     "SpeakerController": SpeakerController,
     "TemperatureSensor": TemperatureSensor,
-    "RollershutterController": RollershutterController
+    "RollershutterController": RollershutterController,
+    "ColorController": ColorController,
+    "ColorTemperatureController": ColorTemperatureController
 }
 
 class AlexaDevice:
@@ -94,7 +97,9 @@ class AlexaDevice:
                 "power": self.raw_state,
                 "brightness": self.raw_state,
                 "temperature": self.raw_state,
-                "value": self.raw_state
+                "value": self.raw_state,
+                "color": self.raw_state,
+                "colorTemperatureInKelvin": self.raw_state
             }
 
         for controller in self.controllers:
