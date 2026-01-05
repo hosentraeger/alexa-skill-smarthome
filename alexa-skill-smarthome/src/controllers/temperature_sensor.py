@@ -39,3 +39,18 @@ class TemperatureSensor(AlexaController):
                 "scale": "CELSIUS"  # Alexa unterstützt CELSIUS, FAHRENHEIT, KELVIN
             }
         }]
+
+    @staticmethod
+    def handle_directive(name, payload, current_state=None):
+        # Sensoren empfangen normalerweise keine Direktiven von Alexa,
+        # aber das Interface muss für den Discovery/Handler-Loop existieren.
+        return {}
+
+    @staticmethod
+    def handle_update(update_dict):
+        state = update_dict.get("state")
+        try:
+            # OpenHAB liefert oft Strings, Alexa will Floats
+            return {"temperature": float(state)}
+        except (ValueError, TypeError):
+            return {}

@@ -1,6 +1,10 @@
 # controllers/power_controller.py
 
+import logging
 from .alexa_controller import AlexaController
+
+# Logger konfigurieren
+logger = logging.getLogger(__name__)
 
 class PowerController(AlexaController):
     namespace = "Alexa.PowerController"
@@ -21,7 +25,7 @@ class PowerController(AlexaController):
     @staticmethod
     def get_properties(state_dict):
         # Wir erwarten in state_dict['power'] den Wert "ON" oder "OFF"
-        value = state_dict.get('power', 'OFF') 
+        value = state_dict.get('powerState', 'OFF')
         return [{
             "namespace": "Alexa.PowerController",
             "name": "powerState",
@@ -29,7 +33,23 @@ class PowerController(AlexaController):
         }]
 
     @staticmethod
-    def handle_directive(name, payload):
-        # name ist "TurnOn" oder "TurnOff"
+    def handle_directive(name, payload, current_state=None):
+        logger.info(f"PowerController: Handling '{name}'")
+
+        if name not in ("TurnOn", "TurnOff"):
+            logger.warning(f"PowerController: Directive '{name}' not supported.")
+            return {}
+
         value = "ON" if name == "TurnOn" else "OFF"
-        return {"power": value}
+
+        return {
+            "alexa": {"powerState": value},
+            "openhab": value
+        }
+
+    @staticmethod
+    def handle_update(update_dict):
+        state = update_dict.get("state")
+        if state in ["ON", "OFF"]:
+            return {"powerState": state}
+        return {}

@@ -18,7 +18,14 @@ CONTROLLER_MAPPING = {
     "TemperatureSensor": TemperatureSensor,
     "RollershutterController": RollershutterController,
     "ColorController": ColorController,
-    "ColorTemperatureController": ColorTemperatureController
+    "ColorTemperatureController": ColorTemperatureController,
+    "MotionSensor": MotionSensor,
+    "ContactSensor": ContactSensor,
+    "HumiditySensor": HumiditySensor,
+    "ThermostatController": ThermostatController,
+    "StepSpeakerController": StepSpeakerController,
+    "SceneController": SceneController,
+    "ToggleController": ToggleController
 }
 
 class AlexaDevice:
@@ -136,41 +143,33 @@ class AlexaDevice:
         }
 
     def execute_directive(self, directive):
-        """
-        Sucht den passenden Controller und lässt ihn den Befehl
-        in Hardware-Daten (MQTT) übersetzen.
-        """
         header = directive.get('header', {})
         payload = directive.get('payload', {})
         namespace = header.get('namespace')
         name = header.get('name')
 
-        # Den Controller finden, der für diesen Namespace zuständig ist
-        # Wir suchen in der Liste der Klassen-Referenzen, die wir in __init__ gesammelt haben
         target_controller = next((c for c in self.controllers if c.namespace == namespace), None)
 
         if target_controller:
-            # Den Controller bitten, den Befehl zu übersetzen
-            mqtt_data = target_controller.handle_directive(name, payload)
-            
-            # WICHTIG: Den internen State des Objekts sofort aktualisieren!
-            # So enthält die darauf folgende Alexa-Response direkt die neuen Werte.
-            if mqtt_data:
-                if isinstance(self.raw_state, dict):
-                    self.raw_state.update(mqtt_data)
-                else:
-                    # Falls raw_state ein String war (z.B. nur "ON"), 
-                    # wandeln wir ihn jetzt in ein sauberes Dict um.
-                    self.raw_state = mqtt_data
-            
-            return mqtt_data
-        
+            # Der Controller liefert jetzt beide Welten zurück
+            result = target_controller.handle_directive(name, payload, current_state=self.raw_state)
+
+            if result:
+                # 1. Speichern im Alexa-Format (DynamoDB)
+                alexa_data = result.get("alexa")
+                if alexa_data:
+                    self.raw_state.update(alexa_data)
+                    self.update_db()
+
+                # 2. Rückgabe des OpenHAB-Formats für den Lambda-Handler
+                return result.get("openhab")
+
         return None
-        
+
+
     def update_db(self):
         """Schreibt den aktuellen raw_state zurück in die DynamoDB."""
-        import boto3
-        
+
         # Nutze die Umgebungsvariable oder einen Standardnamen
         table_name = os.environ.get('DDB_TABLE', 'smarthome_devices')
         region = os.environ.get('AWS_DEFAULT_REGION', 'eu-west-1') # Deine Region!

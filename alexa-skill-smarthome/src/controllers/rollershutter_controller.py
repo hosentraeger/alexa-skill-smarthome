@@ -1,6 +1,10 @@
 # controllers/rollershutter_controller.py
 
+import logging
 from .alexa_controller import AlexaController
+
+# Logger konfigurieren
+logger = logging.getLogger(__name__)
 
 
 class RollershutterController(AlexaController):
@@ -118,22 +122,43 @@ class RollershutterController(AlexaController):
         ]
 
     @staticmethod
-    def handle_directive(name, payload):
-        # name ist "SetMode", payload['mode'] ist "Position.Up"
+    def handle_directive(name, payload, current_state=None):
+        logger.info(f"Rollershutter: Handling '{name}'")
+
         if name == "SetMode":
-            mode_value = payload["mode"].split(".")[-1]  # "Up", "Down", "Stopped"
-            return {"mode": mode_value.upper()}
+            # 1. Wir behalten den VOLLEN Namen für die Datenbank/Alexa (Status-Reporting)
+            # Alexa schickt z.B. "Position.Up"
+            full_mode = payload.get("mode")
+
+            # 2. Wir extrahieren den Befehl für OpenHAB
+            # Wir mappen die Alexa-Werte auf die OpenHAB-Strings
+            oh_command = "STOP"
+            if "Up" in full_mode:
+                oh_command = "UP"
+            elif "Down" in full_mode:
+                oh_command = "DOWN"
+            elif "Stopped" in full_mode:
+                oh_command = "STOP"
+
+            return {
+                "alexa": {"mode": full_mode},  # Speichert "Position.Up" in DynamoDB
+                "openhab": oh_command  # Sendet "UP" via MQTT
+            }
+
+        logger.warning(f"Rollershutter: Directive '{name}' not supported.")
         return {}
 
     @staticmethod
     def handle_update(update_dict):
-        # Hardware (OpenHAB) -> DB
-        # Angenommen OpenHAB schickt: {"state": "OPEN"} oder {"state": "CLOSED"}
-        oh_state = update_dict.get("state")
-        if oh_state == "OPEN":
-            return {"mode": "Position.Up"}
-        elif oh_state == "CLOSED":
+        oh_state = update_dict.get("state")  # z.B. "CLOSED", "OPEN" oder "MOVE"/"STOP"
+
+        # Mapping von OpenHAB Status auf Alexa Mode-Werte
+        if oh_state == "CLOSED":
             return {"mode": "Position.Down"}
-        elif oh_state == "MOVE":  # Nur ein Beispiel
+        elif oh_state == "OPEN":
+            return {"mode": "Position.Up"}
+        elif oh_state in ["STOP", "MOVE", "UNDEF"]:
+            # Wenn der Rolladen mitten im Lauf gestoppt wurde
             return {"mode": "Position.Stopped"}
+
         return {}

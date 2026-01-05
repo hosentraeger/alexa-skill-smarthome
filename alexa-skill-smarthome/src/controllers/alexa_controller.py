@@ -21,7 +21,7 @@ class AlexaController(ABC):
         pass
 
     @staticmethod
-    def handle_directive(name, payload):
+    def handle_directive(name, payload, current_state):
         """Verarbeitet eine Direktive"""
         return {}
 

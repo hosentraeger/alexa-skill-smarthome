@@ -1,3 +1,5 @@
+# controllers/color_controller.py
+
 import logging
 from .alexa_controller import AlexaController
 
@@ -58,26 +60,63 @@ class ColorController(AlexaController):
         }]
 
     @staticmethod
-    def handle_directive(name, payload):
-        logger.info(f"ColorController: Handling directive '{name}' with payload: {payload}")
-
-        # Standard-Fallback bei Fehlern: Schwarz (Aus)
-        fallback_color = {"hue": 0.0, "saturation": 0.0, "brightness": 0.0}
+    def handle_directive(name, payload, current_state=None):
+        logger.info(f"ColorController: Handling '{name}'")
 
         if name == "SetColor":
-            color_value = payload.get('color')
+            new_color = payload.get('color')
 
-            if not color_value or not isinstance(color_value, dict):
-                logger.error(f"ColorController: Received invalid 'color' payload in SetColor: {color_value}")
-                return {"color": fallback_color}
+            # Validierung des Alexa-Payloads
+            if not new_color or not all(k in new_color for k in ("hue", "saturation", "brightness")):
+                logger.error(f"ColorController: Invalid color payload: {new_color}")
+                return {}
 
-            # Prüfung auf korrekte Struktur im Payload von Alexa
-            if all(k in color_value for k in ("hue", "saturation", "brightness")):
-                logger.info(f"ColorController: Successfully extracted color: {color_value}")
-                return {"color": color_value}
-            else:
-                logger.error(f"ColorController: Incomplete color object in payload: {color_value}")
-                return {"color": fallback_color}
+            # 1. Alexa-Format (für DynamoDB)
+            alexa_state = {"color": new_color}
 
-        logger.warning(f"ColorController: Directive '{name}' not supported by this controller.")
+            # 2. OpenHAB-Format (Konvertierung zu H,S,V String)
+            # OpenHAB erwartet oft: "hue,saturation,brightness"
+            # Alexa liefert Floats, OpenHAB bevorzugt oft gerundete Werte oder Floats als String
+            h = new_color['hue']
+            s = new_color['saturation'] * 100  # Alexa: 0.0-1.0 -> OpenHAB: 0-100
+            b = new_color['brightness'] * 100  # Alexa: 0.0-1.0 -> OpenHAB: 0-100
+
+            openhab_command = f"{h:.1f},{s:.1f},{b:.1f}"
+
+            logger.info(f"ColorController: Alexa color {new_color} mapped to OpenHAB: {openhab_command}")
+
+            return {
+                "alexa": alexa_state,
+                "openhab": openhab_command
+            }
+
+        logger.warning(f"ColorController: Directive '{name}' not supported.")
+        return {}
+
+    @staticmethod
+    def handle_update(update_dict):
+        state = update_dict.get("state")
+        if not state:
+            return {}
+
+        try:
+            # OpenHAB sendet HSB oft als String: "H,S,B" (z.B. "240.0,100.0,50.0")
+            if isinstance(state, str) and "," in state:
+                parts = state.split(",")
+                if len(parts) == 3:
+                    h = float(parts[0])
+                    # OpenHAB nutzt 0-100 für S und B, Alexa nutzt 0.0-1.0
+                    s = float(parts[1]) / 100.0
+                    b = float(parts[2]) / 100.0
+
+                    return {
+                        "color": {
+                            "hue": h,
+                            "saturation": s,
+                            "brightness": b
+                        }
+                    }
+        except (ValueError, TypeError, IndexError) as e:
+            logger.error(f"ColorController Update Error: {str(e)}")
+
         return {}
