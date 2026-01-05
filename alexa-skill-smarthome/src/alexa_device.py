@@ -8,7 +8,9 @@ DEFAULT_MANUFACTURER_NAME = os.environ.get("MANUFACTURER_NAME", "A.C.M.E. Corp")
 from controllers import (
     PowerController, BrightnessController, SpeakerController, 
     TemperatureSensor, RollershutterController, ColorController,
-    ColorTemperatureController
+    ColorTemperatureController, MotionSensor, ContactSensor,
+    HumiditySensor, ThermostatController, StepSpeakerController,
+    SceneController, ToggleController
 )
 
 CONTROLLER_MAPPING = {
