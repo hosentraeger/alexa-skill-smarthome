@@ -2,6 +2,8 @@
 
 import boto3
 import os
+from decimal import Decimal
+
 
 DEFAULT_MANUFACTURER_NAME = os.environ.get("MANUFACTURER_NAME", "A.C.M.E. Corp")
 
@@ -180,13 +182,25 @@ class AlexaDevice:
         table = dynamodb.Table(table_name)
 
         print(f"[DB] Aktualisiere Status für {self.endpoint_id}...")
-        
+
+        def to_decimal(obj):
+            if isinstance(obj, float):
+                return Decimal(str(obj))
+            if isinstance(obj, dict):
+                return {k: to_decimal(v) for k, v in obj.items()}
+            if isinstance(obj, list):
+                return [to_decimal(i) for i in obj]
+            return obj
+
+        # Wir säubern den kompletten State vor dem Speichern
+        safe_state = to_decimal(self.raw_state)
+
         try:
             table.update_item(
                 Key={'device_id': self.endpoint_id},
                 UpdateExpression="set #s = :s",
                 ExpressionAttributeNames={'#s': 'state'},
-                ExpressionAttributeValues={':s': self.raw_state}
+                ExpressionAttributeValues={':s': safe_state}
             )
             return True
         except Exception as e:
